@@ -406,6 +406,57 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
+/* Edit Settings */
+.edit-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.edit-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.resize-settings {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--surface-light);
+    border-radius: 8px;
+}
+
+.resize-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.size-input {
+    flex: 1;
+    padding: 10px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.size-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.size-separator {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
 /* Preview Section */
 .preview-section {
     background: var(--surface);
@@ -441,12 +492,14 @@ body {
 
 .preview-info {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .preview-name {
     font-size: 0.9rem;
     color: var(--text-primary);
-    margin-bottom: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -455,6 +508,12 @@ body {
 .preview-size {
     font-size: 0.85rem;
     color: var(--text-secondary);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    width: 100%;
 }
 
 .preview-remove {
@@ -673,4 +732,262 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: var(--surface);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 2px solid var(--border);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-close:hover {
+    background: var(--surface-light);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.image-preview-compare {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--background);
+    border-radius: 12px;
+}
+
+.preview-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-title {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.preview-image-container {
+    width: 100%;
+    max-width: 350px;
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.preview-image-container canvas {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+}
+
+.preview-size-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.preview-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.preview-divider svg {
+    width: 32px;
+    height: 32px;
+}
+
+.editor-container {
+    max-height: 500px;
+    background: var(--background);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.editor-container img {
+    max-width: 100%;
+    display: block;
+}
+
+/* 隐藏Cropper.js的裁剪框和拖拽层 */
+.cropper-drag-box,
+.cropper-crop {
+    display: none !important;
+}
+
+.editor-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--surface-light);
+    border-radius: 10px;
+}
+
+.editor-hint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+    padding: 8px 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 6px;
+}
+
+.editor-option-group {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.resize-inputs-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.size-input-small {
+    width: 80px;
+    padding: 6px 10px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.size-input-small:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.edit-option-small {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.resize-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+}
+
+.resize-preview-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.preview-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.preview-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.resize-preview-arrow {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.editor-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.editor-controls .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    padding: 20px 30px;
+    border-top: 2px solid var(--border);
+}
+
+.modal-footer .btn {
+    min-width: 120px;
 }

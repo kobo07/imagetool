@@ -1,6 +1,12 @@
 // Global state
 let uploadedFiles = [];
 let processedResults = [];
+let cropper = null;
+let currentEditIndex = -1;
+let editedFiles = [];
+let originalAspectRatio = 1;
+let originalWidth = 0;
+let originalHeight = 0;
 
 // Format descriptions
 const formatDescriptions = {
@@ -32,6 +38,34 @@ const resetBtn = document.getElementById('resetBtn');
 const pngWarning = document.getElementById('pngWarning');
 const formatInfo = document.getElementById('formatInfo');
 const themeToggle = document.getElementById('themeToggle');
+const editorModal = document.getElementById('editorModal');
+const editorImage = document.getElementById('editorImage');
+const editorContainer = document.querySelector('.editor-container');
+const closeEditor = document.getElementById('closeEditor');
+const cancelEdit = document.getElementById('cancelEdit');
+const applyEdit = document.getElementById('applyEdit');
+const applyEditInline = document.getElementById('applyEditInline');
+const applyButtonText = document.getElementById('applyButtonText');
+const enableCrop = document.getElementById('enableCrop');
+const enableResize = document.getElementById('enableResize');
+const resizeInputs = document.getElementById('resizeInputs');
+const resizeWidth = document.getElementById('resizeWidth');
+const resizeHeight = document.getElementById('resizeHeight');
+const keepRatio = document.getElementById('keepRatio');
+const resizePreview = document.getElementById('resizePreview');
+const originalSize = document.getElementById('originalSize');
+const newSize = document.getElementById('newSize');
+const sizeChange = document.getElementById('sizeChange');
+const imagePreviewCompare = document.getElementById('imagePreviewCompare');
+const beforeCanvas = document.getElementById('beforeCanvas');
+const afterCanvas = document.getElementById('afterCanvas');
+const beforeSizeLabel = document.getElementById('beforeSizeLabel');
+const afterSizeLabel = document.getElementById('afterSizeLabel');
+const rotateLeft = document.getElementById('rotateLeft');
+const rotateRight = document.getElementById('rotateRight');
+const flipH = document.getElementById('flipH');
+const flipV = document.getElementById('flipV');
+const resetCrop = document.getElementById('resetCrop');
 
 // Event Listeners
 uploadBtn.addEventListener('click', (e) => {
@@ -60,6 +94,19 @@ processBtn.addEventListener('click', processImages);
 downloadAllBtn.addEventListener('click', downloadAll);
 resetBtn.addEventListener('click', reset);
 themeToggle.addEventListener('click', toggleTheme);
+enableCrop.addEventListener('change', toggleCropMode);
+enableResize.addEventListener('change', toggleResizeInputs);
+resizeWidth.addEventListener('input', handleWidthChange);
+resizeHeight.addEventListener('input', handleHeightChange);
+closeEditor.addEventListener('click', closeEditorModal);
+cancelEdit.addEventListener('click', closeEditorModal);
+applyEdit.addEventListener('click', applyEditorChanges);
+applyEditInline.addEventListener('click', applyInlineEdit);
+rotateLeft.addEventListener('click', () => cropper && cropper.rotate(-90));
+rotateRight.addEventListener('click', () => cropper && cropper.rotate(90));
+flipH.addEventListener('click', () => cropper && cropper.scaleX(-cropper.getData().scaleX || -1));
+flipV.addEventListener('click', () => cropper && cropper.scaleY(-cropper.getData().scaleY || -1));
+resetCrop.addEventListener('click', () => cropper && cropper.reset());
 
 // File handling functions
 function handleFileSelect(e) {
@@ -109,6 +156,13 @@ function updatePreview() {
                 <div class="preview-info">
                     <div class="preview-name" title="${file.name}">${file.name}</div>
                     <div class="preview-size">${formatFileSize(file.size)}</div>
+                    <button class="btn btn-primary btn-small" onclick="openEditorForImage(${index})">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        编辑
+                    </button>
                 </div>
                 <button class="preview-remove" onclick="removeFile(${index})">×</button>
             `;
@@ -410,6 +464,407 @@ function formatFileSize(bytes) {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Edit functions
+function disableEditorControls() {
+    // 隐藏旋转翻转按钮
+    rotateLeft.style.display = 'none';
+    rotateRight.style.display = 'none';
+    flipH.style.display = 'none';
+    flipV.style.display = 'none';
+    resetCrop.style.display = 'none';
+    // 显示应用按钮
+    applyEditInline.style.display = 'block';
+}
+
+function enableEditorControls() {
+    // 显示旋转翻转按钮
+    rotateLeft.style.display = 'block';
+    rotateRight.style.display = 'block';
+    flipH.style.display = 'block';
+    flipV.style.display = 'block';
+    resetCrop.style.display = 'block';
+    // 隐藏应用按钮
+    applyEditInline.style.display = 'none';
+}
+
+function toggleCropMode() {
+    if (enableCrop.checked) {
+        // 取消分辨率调整
+        enableResize.checked = false;
+        resizeInputs.style.display = 'none';
+        resizePreview.style.display = 'none';
+        imagePreviewCompare.style.display = 'none';
+        
+        // 显示编辑器容器
+        editorContainer.style.display = 'block';
+        
+        // 更新按钮文本并显示应用按钮
+        applyButtonText.textContent = '应用裁剪';
+        disableEditorControls();
+        
+        // 启用裁剪
+        if (cropper) {
+            cropper.enable();
+            cropper.crop();
+        }
+    } else {
+        // 启用编辑器控制按钮
+        enableEditorControls();
+        
+        // 禁用裁剪
+        if (cropper) {
+            cropper.clear();
+        }
+    }
+}
+
+function toggleResizeInputs() {
+    if (enableResize.checked) {
+        // 取消裁剪
+        enableCrop.checked = false;
+        if (cropper) {
+            cropper.clear();
+        }
+        
+        // 隐藏编辑器容器
+        editorContainer.style.display = 'none';
+        
+        // 更新按钮文本并显示应用按钮
+        applyButtonText.textContent = '应用分辨率';
+        disableEditorControls();
+        
+        // 显示分辨率调整相关元素
+        resizeInputs.style.display = 'flex';
+        resizePreview.style.display = 'flex';
+        imagePreviewCompare.style.display = 'flex';
+        
+        if (cropper) {
+            // 使用图片元素的实际尺寸，而不是naturalWidth/naturalHeight
+            const img = editorImage;
+            originalWidth = img.naturalWidth || img.width;
+            originalHeight = img.naturalHeight || img.height;
+            originalAspectRatio = originalWidth / originalHeight;
+            
+            resizeWidth.value = originalWidth;
+            resizeHeight.value = originalHeight;
+            
+            updateResizePreview();
+            updateImagePreview();
+        }
+    } else {
+        // 显示编辑器容器
+        editorContainer.style.display = 'block';
+        
+        // 启用编辑器控制按钮
+        enableEditorControls();
+        
+        // 隐藏分辨率调整相关元素
+        resizeInputs.style.display = 'none';
+        resizePreview.style.display = 'none';
+        imagePreviewCompare.style.display = 'none';
+    }
+}
+
+function handleWidthChange() {
+    if (keepRatio.checked && originalAspectRatio && resizeWidth.value) {
+        const newWidth = parseInt(resizeWidth.value);
+        const newHeight = Math.round(newWidth / originalAspectRatio);
+        resizeHeight.value = newHeight;
+    }
+    updateResizePreview();
+    updateImagePreview();
+}
+
+function handleHeightChange() {
+    if (keepRatio.checked && originalAspectRatio && resizeHeight.value) {
+        const newHeight = parseInt(resizeHeight.value);
+        const newWidth = Math.round(newHeight * originalAspectRatio);
+        resizeWidth.value = newWidth;
+    }
+    updateResizePreview();
+    updateImagePreview();
+}
+
+function updateResizePreview() {
+    if (!enableResize.checked) return;
+    
+    // 验证尺寸是否有效
+    if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
+        console.error('Invalid dimensions in preview:', originalWidth, originalHeight);
+        originalSize.textContent = '无效尺寸';
+        newSize.textContent = '无效尺寸';
+        sizeChange.textContent = '-';
+        return;
+    }
+    
+    // 显示原始尺寸
+    originalSize.textContent = `${originalWidth} × ${originalHeight}`;
+    
+    // 显示新尺寸
+    const newW = parseInt(resizeWidth.value) || originalWidth;
+    const newH = parseInt(resizeHeight.value) || originalHeight;
+    newSize.textContent = `${newW} × ${newH}`;
+    
+    // 计算变化百分比
+    const originalPixels = originalWidth * originalHeight;
+    const newPixels = newW * newH;
+    const changePercent = ((newPixels / originalPixels - 1) * 100).toFixed(1);
+    
+    if (changePercent > 0) {
+        sizeChange.textContent = `↑ ${changePercent}%`;
+        sizeChange.style.color = '#ef4444';
+    } else if (changePercent < 0) {
+        sizeChange.textContent = `↓ ${Math.abs(changePercent)}%`;
+        sizeChange.style.color = '#10b981';
+    } else {
+        sizeChange.textContent = '无变化';
+        sizeChange.style.color = 'var(--text-secondary)';
+    }
+}
+
+function updateImagePreview() {
+    if (!enableResize.checked || !cropper) return;
+    
+    // 验证尺寸是否有效
+    if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
+        console.error('Invalid dimensions:', originalWidth, originalHeight);
+        return;
+    }
+    
+    const newW = parseInt(resizeWidth.value) || originalWidth;
+    const newH = parseInt(resizeHeight.value) || originalHeight;
+    
+    // 获取当前图片（不指定尺寸，获取完整canvas）
+    const sourceCanvas = cropper.getCroppedCanvas();
+    
+    if (!sourceCanvas) {
+        console.error('Failed to get canvas');
+        return;
+    }
+    
+    // 绘制调整前的图片
+    const beforeCtx = beforeCanvas.getContext('2d');
+    const maxDisplaySize = 300;
+    const beforeScale = Math.min(maxDisplaySize / originalWidth, maxDisplaySize / originalHeight, 1);
+    const beforeDisplayW = originalWidth * beforeScale;
+    const beforeDisplayH = originalHeight * beforeScale;
+    
+    beforeCanvas.width = beforeDisplayW;
+    beforeCanvas.height = beforeDisplayH;
+    beforeCtx.drawImage(sourceCanvas, 0, 0, beforeDisplayW, beforeDisplayH);
+    beforeSizeLabel.textContent = `${originalWidth} × ${originalHeight}`;
+    
+    // 绘制调整后的图片
+    const afterCtx = afterCanvas.getContext('2d');
+    const afterScale = Math.min(maxDisplaySize / newW, maxDisplaySize / newH, 1);
+    const afterDisplayW = newW * afterScale;
+    const afterDisplayH = newH * afterScale;
+    
+    afterCanvas.width = afterDisplayW;
+    afterCanvas.height = afterDisplayH;
+    afterCtx.drawImage(sourceCanvas, 0, 0, afterDisplayW, afterDisplayH);
+    afterSizeLabel.textContent = `${newW} × ${newH}`;
+}
+
+// 打开指定图片的编辑器
+window.openEditorForImage = function(index) {
+    currentEditIndex = index;
+    const file = uploadedFiles[index];
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+        editorImage.src = e.target.result;
+        editorModal.style.display = 'flex';
+        
+        // 重置选项
+        enableCrop.checked = false;
+        enableResize.checked = false;
+        resizeInputs.style.display = 'none';
+        resizePreview.style.display = 'none';
+        imagePreviewCompare.style.display = 'none';
+        editorContainer.style.display = 'block';
+        
+        // 销毁旧的cropper实例
+        if (cropper) {
+            cropper.destroy();
+        }
+        
+        // 创建新的cropper实例
+        cropper = new Cropper(editorImage, {
+            aspectRatio: NaN,
+            viewMode: 1,
+            autoCropArea: 1,
+            responsive: true,
+            background: false,
+            autoCrop: false,
+            ready: function() {
+                const imageData = cropper.getImageData();
+                originalWidth = Math.round(imageData.naturalWidth);
+                originalHeight = Math.round(imageData.naturalHeight);
+                originalAspectRatio = originalWidth / originalHeight;
+                
+                resizeWidth.value = originalWidth;
+                resizeHeight.value = originalHeight;
+                
+                // 初始化预览
+                if (enableResize.checked) {
+                    updateResizePreview();
+                }
+            }
+        });
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+function closeEditorModal() {
+    editorModal.style.display = 'none';
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    currentEditIndex = -1;
+}
+
+async function applyInlineEdit() {
+    if (!cropper) {
+        console.error('Cropper not initialized');
+        return;
+    }
+    
+    try {
+        let canvas;
+        
+        if (enableCrop.checked) {
+            // 应用裁剪
+            console.log('Applying crop...');
+            canvas = cropper.getCroppedCanvas();
+        } else if (enableResize.checked) {
+            // 应用分辨率调整
+            const targetWidth = parseInt(resizeWidth.value);
+            const targetHeight = parseInt(resizeHeight.value);
+            
+            console.log('Applying resize:', targetWidth, 'x', targetHeight);
+            
+            // 先获取当前完整图片
+            const fullCanvas = cropper.getCroppedCanvas();
+            
+            if (!fullCanvas) {
+                throw new Error('无法获取当前图片canvas');
+            }
+            
+            // 创建调整大小的canvas
+            const resizeCanvas = document.createElement('canvas');
+            const ctx = resizeCanvas.getContext('2d');
+            resizeCanvas.width = targetWidth;
+            resizeCanvas.height = targetHeight;
+            ctx.drawImage(fullCanvas, 0, 0, targetWidth, targetHeight);
+            canvas = resizeCanvas;
+        }
+        
+        if (!canvas) {
+            console.error('No canvas generated');
+            return;
+        }
+        
+        // 将canvas转为blob，明确指定类型
+        console.log('Converting canvas to blob...');
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        console.log('Blob created:', blob.size, 'bytes');
+        
+        // 如果有有效的索引，更新uploadedFiles数组
+        if (currentEditIndex !== -1 && uploadedFiles[currentEditIndex]) {
+            const file = uploadedFiles[currentEditIndex];
+            const newFile = new File([blob], file.name, { type: 'image/png' });
+            uploadedFiles[currentEditIndex] = newFile;
+            console.log('Updated uploadedFiles[' + currentEditIndex + ']');
+        }
+        
+        const dataUrl = URL.createObjectURL(blob);
+        console.log('Created blob URL:', dataUrl);
+        
+        // 销毁旧的cropper
+        if (cropper) {
+            cropper.destroy();
+        }
+        
+        // 重置选项
+        enableCrop.checked = false;
+        enableResize.checked = false;
+        resizeInputs.style.display = 'none';
+        resizePreview.style.display = 'none';
+        imagePreviewCompare.style.display = 'none';
+        editorContainer.style.display = 'block';
+        enableEditorControls();
+        
+        // 重新创建cropper
+        editorImage.onload = () => {
+            cropper = new Cropper(editorImage, {
+                aspectRatio: NaN,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                autoCrop: false,
+                ready: function() {
+                    // 直接从图片元素获取尺寸
+                    originalWidth = editorImage.naturalWidth || editorImage.width;
+                    originalHeight = editorImage.naturalHeight || editorImage.height;
+                    originalAspectRatio = originalWidth / originalHeight;
+                    
+                    console.log('Cropper ready, dimensions:', originalWidth, originalHeight);
+                    
+                    resizeWidth.value = originalWidth;
+                    resizeHeight.value = originalHeight;
+                }
+            });
+        };
+        
+        // 重新加载图片
+        editorImage.src = dataUrl;
+        
+        // 如果有有效索引，更新预览卡片
+        if (currentEditIndex !== -1) {
+            updatePreview();
+        }
+        
+    } catch (error) {
+        console.error('应用编辑失败:', error);
+        alert('应用编辑失败，请重试');
+    }
+}
+
+async function applyEditorChanges() {
+    if (!cropper || currentEditIndex === -1) return;
+    
+    try {
+        // 直接获取当前完整的canvas（包含所有已应用的编辑）
+        const canvas = cropper.getCroppedCanvas();
+        
+        if (!canvas) {
+            throw new Error('无法获取图片canvas');
+        }
+        
+        // 将canvas转为blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve));
+        const file = uploadedFiles[currentEditIndex];
+        const newFile = new File([blob], file.name, { type: file.type });
+        
+        // 替换原文件
+        uploadedFiles[currentEditIndex] = newFile;
+        
+        // 更新预览
+        updatePreview();
+        
+        // 关闭编辑器
+        closeEditorModal();
+        
+    } catch (error) {
+        console.error('应用编辑失败:', error);
+        alert('编辑失败，请重试');
+    }
 }
 
 // Theme functions

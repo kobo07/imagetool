@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>图片处理工具 - Image Processor</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -143,6 +145,133 @@
         <footer class="footer">
             <p>© 2024 图片处理工具 - 所有处理均在浏览器本地完成，保护您的隐私</p>
         </footer>
+    </div>
+
+    <!-- Image Editor Modal -->
+    <div class="modal" id="editorModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>编辑图片</h2>
+                <button class="modal-close" id="closeEditor">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="image-preview-compare" id="imagePreviewCompare" style="display: none;">
+                    <div class="preview-side">
+                        <h3 class="preview-title">调整前</h3>
+                        <div class="preview-image-container">
+                            <canvas id="beforeCanvas"></canvas>
+                        </div>
+                        <p class="preview-size-label" id="beforeSizeLabel">-</p>
+                    </div>
+                    <div class="preview-divider">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                    <div class="preview-side">
+                        <h3 class="preview-title">调整后</h3>
+                        <div class="preview-image-container">
+                            <canvas id="afterCanvas"></canvas>
+                        </div>
+                        <p class="preview-size-label" id="afterSizeLabel">-</p>
+                    </div>
+                </div>
+                <div class="editor-container">
+                    <img id="editorImage" src="" alt="编辑图片">
+                </div>
+                <div class="editor-options">
+                    <div class="editor-option-group">
+                        <label class="edit-option">
+                            <input type="checkbox" id="enableCrop" class="checkbox-input">
+                            <span class="checkbox-label">启用裁剪</span>
+                        </label>
+                        <label class="edit-option">
+                            <input type="checkbox" id="enableResize" class="checkbox-input">
+                            <span class="checkbox-label">调整分辨率</span>
+                        </label>
+                    </div>
+                    <div class="editor-option-group">
+                        <div class="resize-inputs-inline" id="resizeInputs" style="display: none;">
+                            <input type="number" id="resizeWidth" class="size-input-small" placeholder="宽" min="1">
+                            <span>×</span>
+                            <input type="number" id="resizeHeight" class="size-input-small" placeholder="高" min="1">
+                            <label class="edit-option-small">
+                                <input type="checkbox" id="keepRatio" class="checkbox-input" checked>
+                                <span class="checkbox-label">保持比例</span>
+                            </label>
+                        </div>
+                        <div class="resize-preview" id="resizePreview" style="display: none;">
+                            <div class="resize-preview-item">
+                                <span class="preview-label">调整前：</span>
+                                <span class="preview-value" id="originalSize">-</span>
+                            </div>
+                            <div class="resize-preview-arrow">→</div>
+                            <div class="resize-preview-item">
+                                <span class="preview-label">调整后：</span>
+                                <span class="preview-value" id="newSize">-</span>
+                            </div>
+                            <div class="resize-preview-item">
+                                <span class="preview-label">变化：</span>
+                                <span class="preview-value" id="sizeChange">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="editor-controls">
+                    <button class="btn btn-secondary" id="rotateLeft">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"></path>
+                        </svg>
+                        左旋转
+                    </button>
+                    <button class="btn btn-secondary" id="rotateRight">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"></path>
+                        </svg>
+                        右旋转
+                    </button>
+                    <button class="btn btn-secondary" id="flipH">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"></path>
+                            <path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"></path>
+                            <path d="M12 20v2"></path>
+                            <path d="M12 14v2"></path>
+                            <path d="M12 8v2"></path>
+                            <path d="M12 2v2"></path>
+                        </svg>
+                        水平翻转
+                    </button>
+                    <button class="btn btn-secondary" id="flipV">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 8V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3"></path>
+                            <path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"></path>
+                            <path d="M20 12h2"></path>
+                            <path d="M14 12h2"></path>
+                            <path d="M8 12h2"></path>
+                            <path d="M2 12h2"></path>
+                        </svg>
+                        垂直翻转
+                    </button>
+                    <button class="btn btn-secondary" id="resetCrop">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                        </svg>
+                        重置
+                    </button>
+                    <button class="btn btn-success" id="applyEditInline" style="display: none;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span id="applyButtonText">应用</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEdit">取消</button>
+                <button class="btn btn-success" id="applyEdit">应用编辑</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
