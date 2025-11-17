@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS加载测试</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>CSS加载测试页面</h1>
+        
+        <div class="test-item" id="cssTest">
+            <h3>CSS文件加载状态</h3>
+            <p id="cssStatus">检测中...</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>导航栏Logo测试</h3>
+            <svg class="navbar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p>如果CSS正确加载，上面的图标应该是32x32像素</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>按钮样式测试</h3>
+            <button class="btn btn-primary">主要按钮</button>
+            <button class="btn btn-secondary">次要按钮</button>
+            <p>如果CSS正确加载，按钮应该有颜色和样式</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>返回主页</h3>
+            <a href="./index.html" class="btn btn-primary">图片处理工具</a>
+            <a href="./audio.html" class="btn btn-secondary">音频处理工具</a>
+        </div>
+    </div>
+    
+    <script>
+        // 检测CSS是否加载
+        window.addEventListener('load', function() {
+            const logo = document.querySelector('.navbar-logo');
+            const computedStyle = window.getComputedStyle(logo);
+            const width = computedStyle.width;
+            const height = computedStyle.height;
+            
+            const statusEl = document.getElementById('cssStatus');
+            const testEl = document.getElementById('cssTest');
+            
+            if (width === '32px' && height === '32px') {
+                statusEl.innerHTML = `
+                    <strong>✅ CSS加载成功！</strong><br>
+                    Logo尺寸: ${width} x ${height}<br>
+                    颜色: ${computedStyle.stroke}
+                `;
+                testEl.classList.add('success');
+            } else {
+                statusEl.innerHTML = `
+                    <strong>❌ CSS未正确加载</strong><br>
+                    Logo尺寸: ${width} x ${height} (应该是 32px x 32px)<br>
+                    <br>
+                    <strong>解决方法：</strong><br>
+                    1. 清除浏览器缓存 (Ctrl+Shift+Delete)<br>
+                    2. 强制刷新页面 (Ctrl+F5)<br>
+                    3. 检查浏览器控制台(F12)的Network标签，查看styles.css是否返回404<br>
+                    4. 确认styles.css文件在同一目录下
+                `;
+                testEl.classList.add('error');
+            }
+            
+            // 打印所有加载的CSS文件
+            console.log('已加载的样式表:');
+            for (let i = 0; i < document.styleSheets.length; i++) {
+                const sheet = document.styleSheets[i];
+                console.log(`${i + 1}. ${sheet.href || '内联样式'}`);
+            }
+        });
+    </script>
+</body>
+</html>
