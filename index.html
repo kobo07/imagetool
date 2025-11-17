@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理工具 - Image Processor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    图片处理工具
+                </h1>
+                <p class="subtitle">支持格式转换、压缩优化、批量处理</p>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>拖拽图片到此处或点击上传</h3>
+                    <p>支持 JPG、PNG、WEBP、GIF、BMP、TIFF、ICO 等格式</p>
+                    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                    <button class="btn btn-primary" id="uploadBtn">选择图片</button>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="settings-section" id="settingsSection" style="display: none;">
+                <div class="settings-card">
+                    <h2 class="section-title">处理设置</h2>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                            输出格式
+                        </label>
+                        <select id="formatSelect" class="select-input">
+                            <option value="original">保持原格式</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                            <option value="webp">WebP</option>
+                            <option value="bmp">BMP</option>
+                            <option value="gif">GIF</option>
+                        </select>
+                        <div class="format-info" id="formatInfo">
+                            <p class="format-description">根据原始图片格式输出，不进行格式转换。</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="compressCheck" class="checkbox-input">
+                            <span class="checkbox-label">启用压缩</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group compress-settings" id="compressSettings" style="display: none;">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            压缩质量: <span id="qualityValue">80</span>%
+                        </label>
+                        <input type="range" id="qualitySlider" class="slider" min="1" max="100" value="80">
+                        <div class="quality-hints">
+                            <span>低质量</span>
+                            <span>高质量</span>
+                        </div>
+                    </div>
+
+                    <!-- Warning message for PNG + original format -->
+                    <div class="warning-message" id="pngWarning" style="display: none;">
+                        💡 提示：检测到PNG图片，启用压缩后将自动转换为JPEG格式以实现有效压缩。
+                    </div>
+
+                    <button class="btn btn-success btn-large" id="processBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        开始处理
+                    </button>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <h2 class="section-title">图片预览</h2>
+                <div class="preview-grid" id="previewGrid"></div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <h2 class="section-title">处理结果</h2>
+                <div class="results-grid" id="resultsGrid"></div>
+                <div class="results-actions">
+                    <button class="btn btn-primary" id="downloadAllBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        下载全部
+                    </button>
+                    <button class="btn btn-secondary" id="resetBtn">重新开始</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>© 2024 图片处理工具 - 所有处理均在浏览器本地完成，保护您的隐私</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
