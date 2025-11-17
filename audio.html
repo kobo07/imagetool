@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频处理工具 - Audio Processor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <svg class="navbar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="navbar-title">多媒体工具箱</span>
+            </div>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link">
+                        <svg class="navbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        图片处理
+                    </a>
+                </li>
+                <li class="navbar-item active">
+                    <a href="audio.html" class="navbar-link">
+                        <svg class="navbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        音频处理
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    音频处理工具
+                </h1>
+                <p class="subtitle">支持格式转换、压缩优化、在线编辑、波形显示</p>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-area" id="audioUploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>拖拽音频文件到此处或点击上传</h3>
+                    <p>支持 MP3、WAV、OGG、M4A、FLAC、AAC、WMA 等格式</p>
+                    <input type="file" id="audioFileInput" accept="audio/*" multiple hidden>
+                    <button class="btn btn-primary" id="audioUploadBtn">选择音频</button>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="settings-section" id="audioSettingsSection" style="display: none;">
+                <div class="settings-card">
+                    <h2 class="section-title">处理设置</h2>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                            输出格式
+                        </label>
+                        <select id="audioFormatSelect" class="select-input">
+                            <option value="original">保持原格式</option>
+                            <option value="mp3">MP3</option>
+                            <option value="wav">WAV</option>
+                            <option value="ogg">OGG</option>
+                            <option value="m4a">M4A</option>
+                        </select>
+                        <div class="format-info" id="audioFormatInfo">
+                            <p class="format-description">根据原始音频格式输出，不进行格式转换。</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="audioCompressCheck" class="checkbox-input">
+                            <span class="checkbox-label">启用压缩</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group compress-settings" id="audioCompressSettings" style="display: none;">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            比特率: <span id="bitrateValue">128</span> kbps
+                        </label>
+                        <input type="range" id="bitrateSlider" class="slider" min="64" max="320" value="128" step="32">
+                        <div class="quality-hints">
+                            <span>低质量 (64)</span>
+                            <span>高质量 (320)</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success btn-large" id="audioProcessBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        开始处理
+                    </button>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section" id="audioPreviewSection" style="display: none;">
+                <h2 class="section-title">音频预览</h2>
+                <div class="preview-grid" id="audioPreviewGrid"></div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="audioResultsSection" style="display: none;">
+                <h2 class="section-title">处理结果</h2>
+                <div class="results-grid" id="audioResultsGrid"></div>
+                <div class="results-actions">
+                    <button class="btn btn-primary" id="audioDownloadAllBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        下载全部
+                    </button>
+                    <button class="btn btn-secondary" id="audioResetBtn">重新开始</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>© 2024 音频处理工具 - 所有处理均在浏览器本地完成，保护您的隐私</p>
+        </footer>
+    </div>
+
+    <!-- Audio Editor Modal -->
+    <div class="modal" id="audioEditorModal" style="display: none;">
+        <div class="modal-content audio-modal">
+            <div class="modal-header">
+                <h2>编辑音频</h2>
+                <button class="modal-close" id="closeAudioEditor">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="audio-info-card">
+                    <h3 class="audio-info-title" id="audioFileName">音频文件</h3>
+                    <div class="audio-info-stats">
+                        <div class="audio-stat">
+                            <span class="stat-label">时长:</span>
+                            <span class="stat-value" id="audioDuration">0:00</span>
+                        </div>
+                        <div class="audio-stat">
+                            <span class="stat-label">大小:</span>
+                            <span class="stat-value" id="audioFileSize">0 KB</span>
+                        </div>
+                        <div class="audio-stat">
+                            <span class="stat-label">格式:</span>
+                            <span class="stat-value" id="audioFormat">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Waveform Display -->
+                <div class="waveform-container">
+                    <div id="waveform"></div>
+                    <div id="waveform-timeline"></div>
+                </div>
+
+                <!-- Audio Player Controls -->
+                <div class="audio-player-controls">
+                    <button class="btn btn-secondary" id="playPauseBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        播放
+                    </button>
+                    <button class="btn btn-secondary" id="stopBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        停止
+                    </button>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Trim Controls -->
+                <div class="trim-controls">
+                    <h3>裁剪音频</h3>
+                    <div class="trim-inputs">
+                        <div class="trim-input-group">
+                            <label>开始时间 (秒)</label>
+                            <input type="number" id="trimStartInput" class="size-input-small" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="trim-input-group">
+                            <label>结束时间 (秒)</label>
+                            <input type="number" id="trimEndInput" class="size-input-small" min="0" step="0.1" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelAudioEdit">取消</button>
+                <button class="btn btn-success" id="applyAudioEdit">应用编辑</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" style="display: none;"></audio>
+    <script src="audio.js"></script>
+</body>
+</html>
