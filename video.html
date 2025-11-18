@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频处理工具 - Video Processor</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <svg class="navbar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="navbar-title">多媒体工具箱</span>
+            </div>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="./index.html" class="navbar-link">
+                        <svg class="navbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        图片处理
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="./audio.html" class="navbar-link">
+                        <svg class="navbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        音频处理
+                    </a>
+                </li>
+                <li class="navbar-item active">
+                    <a href="./video.html" class="navbar-link">
+                        <svg class="navbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                        视频处理
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    视频处理工具
+                </h1>
+                <p class="subtitle">支持格式转换、压缩优化、裁剪编辑、目标大小压制</p>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <!-- FFmpeg Loading Status -->
+            <section class="ffmpeg-status" id="ffmpegStatus" style="display: none;">
+                <div class="status-card">
+                    <div class="status-content">
+                        <div class="spinner" id="ffmpegSpinner"></div>
+                        <p id="ffmpegStatusText">正在加载 FFmpeg...</p>
+                        <button class="btn btn-primary" id="retryLoadBtn" style="display: none; margin-top: 15px;">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                <path d="M3 3v5h5"></path>
+                            </svg>
+                            重试加载
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>拖拽视频到此处或点击上传</h3>
+                    <p>支持 MP4、AVI、MOV、MKV、WebM、FLV 等格式</p>
+                    <input type="file" id="fileInput" accept="video/*" hidden>
+                    <button class="btn btn-primary" id="uploadBtn">选择视频</button>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <h2 class="section-title">视频预览</h2>
+                <div class="video-preview-container">
+                    <video id="videoPreview" controls class="video-preview"></video>
+                    <div class="video-info-card">
+                        <h3>视频信息</h3>
+                        <div class="video-info-grid">
+                            <div class="info-item">
+                                <span class="info-label">文件名:</span>
+                                <span class="info-value" id="videoFileName">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">大小:</span>
+                                <span class="info-value" id="videoFileSize">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">时长:</span>
+                                <span class="info-value" id="videoDuration">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">分辨率:</span>
+                                <span class="info-value" id="videoResolution">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="settings-section" id="settingsSection" style="display: none;">
+                <div class="settings-card">
+                    <h2 class="section-title">处理设置</h2>
+                    
+                    <!-- Trim Settings -->
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="enableTrim" class="checkbox-input">
+                            <span class="checkbox-label">裁剪视频长度</span>
+                        </label>
+                        <div class="trim-settings" id="trimSettings" style="display: none;">
+                            <div class="trim-inputs">
+                                <div class="trim-input-group">
+                                    <label>开始时间 (秒)</label>
+                                    <input type="number" id="trimStart" class="size-input" min="0" step="0.1" value="0">
+                                </div>
+                                <div class="trim-input-group">
+                                    <label>结束时间 (秒)</label>
+                                    <input type="number" id="trimEnd" class="size-input" min="0" step="0.1" value="0">
+                                </div>
+                            </div>
+                            <p class="trim-hint">提示: 留空结束时间将保留到视频末尾</p>
+                        </div>
+                    </div>
+
+                    <!-- Format Selection -->
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                            输出格式
+                        </label>
+                        <select id="formatSelect" class="select-input">
+                            <option value="mp4">MP4 (推荐)</option>
+                            <option value="webm">WebM</option>
+                            <option value="avi">AVI</option>
+                            <option value="mov">MOV</option>
+                            <option value="mkv">MKV</option>
+                        </select>
+                        <div class="format-info">
+                            <p class="format-description">MP4 格式兼容性最好，适合大多数设备和平台。</p>
+                        </div>
+                    </div>
+
+                    <!-- Compression Mode -->
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            压缩模式
+                        </label>
+                        <select id="compressionMode" class="select-input">
+                            <option value="quality">质量优先</option>
+                            <option value="size">目标大小</option>
+                            <option value="balanced">平衡模式</option>
+                        </select>
+                    </div>
+
+                    <!-- Quality Settings -->
+                    <div class="setting-group" id="qualitySettings">
+                        <label class="setting-label">
+                            压缩质量: <span id="qualityValue">23</span> (CRF)
+                        </label>
+                        <input type="range" id="qualitySlider" class="slider" min="18" max="35" value="23">
+                        <div class="quality-hints">
+                            <span>高质量 (18)</span>
+                            <span>低质量 (35)</span>
+                        </div>
+                        <p class="compress-hint">💡 CRF值越低质量越高，文件越大。推荐值: 23</p>
+                    </div>
+
+                    <!-- Target Size Settings -->
+                    <div class="setting-group" id="targetSizeSettings" style="display: none;">
+                        <label class="setting-label">
+                            目标文件大小 (MB)
+                        </label>
+                        <input type="number" id="targetSize" class="size-input" min="1" step="1" value="50" placeholder="例如: 50">
+                        <p class="compress-hint">💡 系统会自动计算最佳比特率以接近目标大小</p>
+                    </div>
+
+                    <!-- Resolution Settings -->
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="enableResize" class="checkbox-input">
+                            <span class="checkbox-label">调整分辨率</span>
+                        </label>
+                        <div class="resize-settings" id="resizeSettings" style="display: none;">
+                            <select id="resolutionPreset" class="select-input">
+                                <option value="original">保持原分辨率</option>
+                                <option value="1920x1080">1920x1080 (1080p)</option>
+                                <option value="1280x720">1280x720 (720p)</option>
+                                <option value="854x480">854x480 (480p)</option>
+                                <option value="640x360">640x360 (360p)</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                            <div class="custom-resolution" id="customResolution" style="display: none; margin-top: 10px;">
+                                <div class="resize-inputs">
+                                    <input type="number" id="customWidth" class="size-input" placeholder="宽度" min="1">
+                                    <span class="size-separator">×</span>
+                                    <input type="number" id="customHeight" class="size-input" placeholder="高度" min="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success btn-large" id="processBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        开始处理
+                    </button>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section class="processing-section" id="processingSection" style="display: none;">
+                <div class="processing-card">
+                    <h2 class="section-title">处理中...</h2>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p class="progress-text" id="progressText">0%</p>
+                    </div>
+                    <p class="processing-status" id="processingStatus">正在初始化...</p>
+                    <div class="processing-logs" id="processingLogs"></div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <h2 class="section-title">处理完成</h2>
+                <div class="results-container">
+                    <div class="result-video-container">
+                        <h3>处理后的视频</h3>
+                        <video id="resultVideo" controls class="video-preview"></video>
+                    </div>
+                    <div class="result-comparison">
+                        <div class="comparison-item">
+                            <h4>原始视频</h4>
+                            <div class="comparison-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">大小:</span>
+                                    <span class="stat-value" id="originalSize">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">时长:</span>
+                                    <span class="stat-value" id="originalDuration">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">分辨率:</span>
+                                    <span class="stat-value" id="originalResolution">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comparison-arrow">→</div>
+                        <div class="comparison-item">
+                            <h4>处理后</h4>
+                            <div class="comparison-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">大小:</span>
+                                    <span class="stat-value success" id="processedSize">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">时长:</span>
+                                    <span class="stat-value" id="processedDuration">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">分辨率:</span>
+                                    <span class="stat-value" id="processedResolution">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <button class="btn btn-primary" id="downloadBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            下载视频
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn">重新开始</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>© 2024 视频处理工具 - 所有处理均在浏览器本地完成，保护您的隐私</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="./video.js"></script>
+</body>
+</html>

@@ -1224,6 +1224,221 @@ body {
     font-weight: 500;
 }
 
+/* Video-specific styles */
+.video-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.video-preview {
+    width: 100%;
+    max-height: 500px;
+    background: var(--background);
+    border-radius: 12px;
+}
+
+.video-info-card {
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.video-info-card h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+
+.video-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.trim-settings {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--surface-light);
+    border-radius: 10px;
+}
+
+.trim-hint {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.resize-settings {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--surface-light);
+    border-radius: 10px;
+}
+
+.resize-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.size-separator {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* FFmpeg Status */
+.ffmpeg-status {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px var(--shadow);
+    margin-bottom: 20px;
+}
+
+.status-card {
+    text-align: center;
+}
+
+.status-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.status-content p {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+/* Processing Section */
+.processing-section {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px var(--shadow);
+}
+
+.processing-card {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.progress-container {
+    margin: 30px 0;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 15px;
+}
+
+.processing-status {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.processing-logs {
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--background);
+    border-radius: 10px;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.log-entry {
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+/* Results Section */
+.results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.result-video-container {
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.result-video-container h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+
+.result-comparison {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 20px;
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 30px;
+}
+
+.comparison-item {
+    flex: 1;
+    text-align: center;
+}
+
+.comparison-item h4 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+
+.comparison-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 15px;
+    background: var(--surface);
+    border-radius: 8px;
+}
+
+.comparison-arrow {
+    font-size: 2rem;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
 /* Responsive adjustments for audio */
 @media (max-width: 768px) {
     .audio-info-stats {
@@ -1242,5 +1457,17 @@ body {
         margin-left: 0;
         width: 100%;
         text-align: center;
+    }
+    
+    .video-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-comparison {
+        flex-direction: column;
+    }
+    
+    .comparison-arrow {
+        transform: rotate(90deg);
     }
 }
