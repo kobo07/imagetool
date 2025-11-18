@@ -195,12 +195,13 @@ async function loadFFmpeg() {
     ffmpegStatusText.textContent = '正在加载 FFmpeg...';
     
     // Use local FFmpeg files to avoid CORS issues on GitHub Pages
+    // Note: Paths are relative to ffmpeg.js location (which is in libs/)
     const cdnSources = [
         {
             name: 'Local',
-            coreURL: './libs/ffmpeg-core.js',
-            wasmURL: './libs/ffmpeg-core.wasm',
-            workerURL: './libs/ffmpeg-core.worker.js'
+            coreURL: './ffmpeg-core.js',
+            wasmURL: './ffmpeg-core.wasm',
+            workerURL: './ffmpeg-core.worker.js'
         }
     ];
     
@@ -236,7 +237,9 @@ async function loadFFmpeg() {
                 console.log(`FFmpeg loaded successfully from ${source.name}`);
                 break;
             } catch (err) {
-                console.warn(`Failed to load from ${source.name}:`, err);
+                const errorMsg = err?.message || err?.toString() || String(err);
+                console.warn(`Failed to load from ${source.name}:`, errorMsg, err);
+                addProcessingLog(`加载失败: ${errorMsg}`);
                 if (i === cdnSources.length - 1) {
                     throw err; // Throw on last attempt
                 }
@@ -248,16 +251,18 @@ async function loadFFmpeg() {
             ffmpegStatus.style.display = 'none';
         }
     } catch (error) {
-        console.error('Failed to load FFmpeg from all sources:', error);
+        const errorMsg = error?.message || error?.toString() || String(error);
+        console.error('Failed to load FFmpeg from all sources:', errorMsg, error);
         ffmpegSpinner.style.display = 'none';
         retryLoadBtn.style.display = 'inline-flex';
         ffmpegStatusText.innerHTML = `
             ❌ 加载 FFmpeg 失败<br>
             <small style="color: var(--text-secondary); font-size: 0.9rem;">
-                可能原因：网络连接问题或CDN无法访问<br>
-                建议：检查网络后点击下方按钮重试
+                错误: ${errorMsg}<br>
+                建议：打开浏览器控制台查看详细错误，或点击下方按钮重试
             </small>
         `;
+        addProcessingLog(`FFmpeg 加载失败: ${errorMsg}`);
     }
 }
 

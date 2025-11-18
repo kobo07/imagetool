@@ -319,12 +319,13 @@
             loadFfmpegBtn.disabled = true;
             addLog('开始加载 FFmpeg...');
             
+            // Paths are relative to ffmpeg.js location (which is in libs/)
             const cdnSources = [
                 {
                     name: 'Local',
-                    coreURL: './libs/ffmpeg-core.js',
-                    wasmURL: './libs/ffmpeg-core.wasm',
-                    workerURL: './libs/ffmpeg-core.worker.js'
+                    coreURL: './ffmpeg-core.js',
+                    wasmURL: './ffmpeg-core.wasm',
+                    workerURL: './ffmpeg-core.worker.js'
                 }
             ];
             
@@ -353,7 +354,9 @@
                         addLog(`成功: 从 ${source.name} 加载完成`);
                         break;
                     } catch (err) {
-                        addLog(`失败: ${source.name} - ${err.message}`, 'error');
+                        const errorMsg = err?.message || err?.toString() || String(err);
+                        addLog(`失败: ${source.name} - ${errorMsg}`, 'error');
+                        console.error('FFmpeg load error:', err);
                         if (i === cdnSources.length - 1) {
                             throw err;
                         }
@@ -366,9 +369,11 @@
                     addLog('✅ FFmpeg 加载成功！');
                 }
             } catch (error) {
+                const errorMsg = error?.message || error?.toString() || String(error);
                 ffmpegStatus.className = 'status error';
-                ffmpegStatus.textContent = '❌ FFmpeg 加载失败: ' + error.message;
-                addLog('错误: FFmpeg 加载失败 - ' + error.message, 'error');
+                ffmpegStatus.textContent = '❌ FFmpeg 加载失败: ' + errorMsg;
+                addLog('错误: FFmpeg 加载失败 - ' + errorMsg, 'error');
+                console.error('Complete error object:', error);
                 loadFfmpegBtn.disabled = false;
             } finally {
                 loadingSpinner.style.display = 'none';
