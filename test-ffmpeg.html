@@ -165,9 +165,9 @@
         </div>
         
         <div class="test-section">
-            <h2>2. 测试 CDN 连接</h2>
+            <h2>2. 检查本地文件</h2>
             <div id="cdnStatus" class="status loading">等待测试...</div>
-            <button id="testCdnBtn" class="btn" disabled>开始测试</button>
+            <button id="testCdnBtn" class="btn" disabled>开始检查</button>
         </div>
         
         <div class="test-section">
@@ -197,7 +197,7 @@
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="./libs/ffmpeg.js"></script>
     <script>
         const libraryStatus = document.getElementById('libraryStatus');
         const cdnStatus = document.getElementById('cdnStatus');
@@ -253,56 +253,61 @@
             }
         }
         
-        // Test 2: Test CDN connections
+        // Test 2: Test Local Files
         async function testCdn() {
             cdnStatus.className = 'status loading';
-            cdnStatus.textContent = '⏳ 正在测试 CDN 连接...';
-            addLog('开始测试 CDN 连接...');
+            cdnStatus.textContent = '⏳ 正在测试本地文件...';
+            addLog('开始测试本地文件...');
             
-            const cdnSources = [
-                {
-                    name: 'jsDelivr',
-                    url: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
-                },
-                {
-                    name: 'unpkg',
-                    url: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
-                }
+            const filesToTest = [
+                { name: 'ffmpeg.js', path: './libs/ffmpeg.js' },
+                { name: 'ffmpeg-core.js', path: './libs/ffmpeg-core.js' },
+                { name: 'ffmpeg-core.wasm', path: './libs/ffmpeg-core.wasm' },
+                { name: 'ffmpeg-core.worker.js', path: './libs/ffmpeg-core.worker.js' }
             ];
             
             let successCount = 0;
             let results = [];
             
-            for (const source of cdnSources) {
+            for (const file of filesToTest) {
                 try {
-                    addLog(`测试 ${source.name}...`);
+                    addLog(`检查 ${file.name}...`);
                     const startTime = Date.now();
-                    const response = await fetch(source.url, { method: 'HEAD' });
+                    const response = await fetch(file.path);
                     const duration = Date.now() - startTime;
                     
                     if (response.ok) {
+                        const blob = await response.blob();
+                        const sizeKB = (blob.size / 1024).toFixed(2);
+                        const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+                        const sizeStr = blob.size > 1024 * 1024 ? `${sizeMB}MB` : `${sizeKB}KB`;
+                        
                         successCount++;
-                        results.push(`✅ ${source.name}: ${duration}ms`);
-                        addLog(`成功: ${source.name} 响应时间 ${duration}ms`);
+                        results.push(`✅ ${file.name}: ${sizeStr} (${duration}ms)`);
+                        addLog(`成功: ${file.name} - ${sizeStr}`);
                     } else {
-                        results.push(`❌ ${source.name}: HTTP ${response.status}`);
-                        addLog(`失败: ${source.name} HTTP ${response.status}`, 'error');
+                        results.push(`❌ ${file.name}: HTTP ${response.status}`);
+                        addLog(`失败: ${file.name} HTTP ${response.status}`, 'error');
                     }
                 } catch (error) {
-                    results.push(`❌ ${source.name}: ${error.message}`);
-                    addLog(`失败: ${source.name} - ${error.message}`, 'error');
+                    results.push(`❌ ${file.name}: ${error.message}`);
+                    addLog(`失败: ${file.name} - ${error.message}`, 'error');
                 }
             }
             
-            if (successCount > 0) {
+            if (successCount === filesToTest.length) {
                 cdnStatus.className = 'status success';
-                cdnStatus.innerHTML = results.join('<br>');
+                cdnStatus.innerHTML = '✅ 所有本地文件检查通过<br>' + results.join('<br>');
                 loadFfmpegBtn.disabled = false;
-                addLog(`CDN 测试完成: ${successCount}/${cdnSources.length} 可用`);
+                addLog(`本地文件测试完成: ${successCount}/${filesToTest.length} 可用`);
+            } else if (successCount > 0) {
+                cdnStatus.className = 'status error';
+                cdnStatus.innerHTML = `⚠️ 部分文件缺失 (${successCount}/${filesToTest.length})<br>` + results.join('<br>');
+                addLog(`警告: 部分文件缺失`, 'error');
             } else {
                 cdnStatus.className = 'status error';
-                cdnStatus.innerHTML = '❌ 所有 CDN 均无法访问<br>' + results.join('<br>');
-                addLog('错误: 所有 CDN 均无法访问', 'error');
+                cdnStatus.innerHTML = '❌ 本地文件未找到<br>' + results.join('<br>') + '<br><br>请运行 download-ffmpeg.ps1 下载文件';
+                addLog('错误: 本地文件未找到', 'error');
             }
         }
         
@@ -316,14 +321,10 @@
             
             const cdnSources = [
                 {
-                    name: 'jsDelivr',
-                    coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-                    wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
-                },
-                {
-                    name: 'unpkg',
-                    coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-                    wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+                    name: 'Local',
+                    coreURL: './libs/ffmpeg-core.js',
+                    wasmURL: './libs/ffmpeg-core.wasm',
+                    workerURL: './libs/ffmpeg-core.worker.js'
                 }
             ];
             
@@ -345,6 +346,7 @@
                         await ffmpeg.load({
                             coreURL: source.coreURL,
                             wasmURL: source.wasmURL,
+                            workerURL: source.workerURL
                         });
                         
                         loaded = true;

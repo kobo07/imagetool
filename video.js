@@ -194,22 +194,13 @@ async function loadFFmpeg() {
     ffmpegStatus.style.display = 'block';
     ffmpegStatusText.textContent = '正在加载 FFmpeg...';
     
-    // CDN sources to try
+    // Use local FFmpeg files to avoid CORS issues on GitHub Pages
     const cdnSources = [
         {
-            name: 'jsDelivr',
-            coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-            wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
-        },
-        {
-            name: 'unpkg',
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
-        },
-        {
-            name: 'unpkg (mirror)',
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.js',
-            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.wasm',
+            name: 'Local',
+            coreURL: './libs/ffmpeg-core.js',
+            wasmURL: './libs/ffmpeg-core.wasm',
+            workerURL: './libs/ffmpeg-core.worker.js'
         }
     ];
     
@@ -238,6 +229,7 @@ async function loadFFmpeg() {
                 await ffmpeg.load({
                     coreURL: source.coreURL,
                     wasmURL: source.wasmURL,
+                    workerURL: source.workerURL
                 });
                 
                 loaded = true;
