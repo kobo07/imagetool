@@ -38,6 +38,11 @@ const resetBtn = document.getElementById('resetBtn');
 const pngWarning = document.getElementById('pngWarning');
 const formatInfo = document.getElementById('formatInfo');
 const themeToggle = document.getElementById('themeToggle');
+const batchResizeCheck = document.getElementById('batchResizeCheck');
+const batchResizeSettings = document.getElementById('batchResizeSettings');
+const batchResizeWidth = document.getElementById('batchResizeWidth');
+const batchResizeHeight = document.getElementById('batchResizeHeight');
+const batchKeepRatio = document.getElementById('batchKeepRatio');
 const editorModal = document.getElementById('editorModal');
 const editorImage = document.getElementById('editorImage');
 const editorContainer = document.querySelector('.editor-container');
@@ -94,6 +99,9 @@ processBtn.addEventListener('click', processImages);
 downloadAllBtn.addEventListener('click', downloadAll);
 resetBtn.addEventListener('click', reset);
 themeToggle.addEventListener('click', toggleTheme);
+batchResizeCheck.addEventListener('change', toggleBatchResizeSettings);
+batchResizeWidth.addEventListener('input', handleBatchWidthChange);
+batchResizeHeight.addEventListener('input', handleBatchHeightChange);
 enableCrop.addEventListener('change', toggleCropMode);
 enableResize.addEventListener('change', toggleResizeInputs);
 resizeWidth.addEventListener('input', handleWidthChange);
@@ -212,6 +220,30 @@ function updateQualityValue() {
     qualityValue.textContent = qualitySlider.value;
 }
 
+function toggleBatchResizeSettings() {
+    if (batchResizeCheck.checked) {
+        batchResizeSettings.style.display = 'flex';
+    } else {
+        batchResizeSettings.style.display = 'none';
+        batchResizeWidth.value = '';
+        batchResizeHeight.value = '';
+    }
+}
+
+function handleBatchWidthChange() {
+    const value = parseInt(batchResizeWidth.value, 10);
+    if (!value || value <= 0) {
+        batchResizeWidth.value = '';
+    }
+}
+
+function handleBatchHeightChange() {
+    const value = parseInt(batchResizeHeight.value, 10);
+    if (!value || value <= 0) {
+        batchResizeHeight.value = '';
+    }
+}
+
 // Image processing functions
 async function processImages() {
     if (uploadedFiles.length === 0) return;
@@ -224,10 +256,19 @@ async function processImages() {
     const compress = compressCheck.checked;
     const quality = qualitySlider.value / 100;
 
+    const enableBatchResize = batchResizeCheck.checked;
+    const batchWidth = parseInt(batchResizeWidth.value, 10) || 0;
+    const batchHeight = parseInt(batchResizeHeight.value, 10) || 0;
+
     for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
         try {
-            const result = await processImage(file, format, compress, quality);
+            const result = await processImage(file, format, compress, quality, {
+                enableBatchResize,
+                batchWidth,
+                batchHeight,
+                keepRatio: batchKeepRatio.checked
+            });
             processedResults.push(result);
         } catch (error) {
             console.error('Error processing image:', error);
@@ -244,18 +285,36 @@ async function processImages() {
     `;
 }
 
-async function processImage(file, format, compress, quality) {
+async function processImage(file, format, compress, quality, batchOptions = {}) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const img = new Image();
             img.onload = async () => {
+                let targetWidth = img.width;
+                let targetHeight = img.height;
+
+                if (batchOptions.enableBatchResize) {
+                    const bw = parseInt(batchOptions.batchWidth, 10) || 0;
+                    const bh = parseInt(batchOptions.batchHeight, 10) || 0;
+
+                    if (bw > 0 && bh > 0) {
+                        targetWidth = bw;
+                        targetHeight = bh;
+                    } else if (bw > 0 && batchOptions.keepRatio && img.height) {
+                        targetWidth = bw;
+                        targetHeight = Math.round(bw * (img.height / img.width));
+                    } else if (bh > 0 && batchOptions.keepRatio && img.width) {
+                        targetHeight = bh;
+                        targetWidth = Math.round(bh * (img.width / img.height));
+                    }
+                }
+
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
                 // Determine output format
                 let outputFormat = file.type;
@@ -592,11 +651,19 @@ function updateResizePreview() {
     
     // 验证尺寸是否有效
     if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
-        console.error('Invalid dimensions in preview:', originalWidth, originalHeight);
-        originalSize.textContent = '无效尺寸';
-        newSize.textContent = '无效尺寸';
-        sizeChange.textContent = '-';
-        return;
+        const img = editorImage;
+        if (img && (img.naturalWidth || img.width) && (img.naturalHeight || img.height)) {
+            originalWidth = img.naturalWidth || img.width;
+            originalHeight = img.naturalHeight || img.height;
+            originalAspectRatio = originalWidth / originalHeight;
+        }
+        if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
+            console.error('Invalid dimensions in preview:', originalWidth, originalHeight);
+            originalSize.textContent = '无效尺寸';
+            newSize.textContent = '无效尺寸';
+            sizeChange.textContent = '-';
+            return;
+        }
     }
     
     // 显示原始尺寸
@@ -625,24 +692,37 @@ function updateResizePreview() {
 }
 
 function updateImagePreview() {
-    if (!enableResize.checked || !cropper) return;
+    if (!enableResize.checked) return;
     
     // 验证尺寸是否有效
     if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
-        console.error('Invalid dimensions:', originalWidth, originalHeight);
-        return;
+        const img = editorImage;
+        if (img && (img.naturalWidth || img.width) && (img.naturalHeight || img.height)) {
+            originalWidth = img.naturalWidth || img.width;
+            originalHeight = img.naturalHeight || img.height;
+            originalAspectRatio = originalWidth / originalHeight;
+        }
+        if (!originalWidth || !originalHeight || isNaN(originalWidth) || isNaN(originalHeight)) {
+            console.error('Invalid dimensions:', originalWidth, originalHeight);
+            return;
+        }
     }
     
     const newW = parseInt(resizeWidth.value) || originalWidth;
     const newH = parseInt(resizeHeight.value) || originalHeight;
     
-    // 获取当前图片（不指定尺寸，获取完整canvas）
-    const sourceCanvas = cropper.getCroppedCanvas();
-    
-    if (!sourceCanvas) {
-        console.error('Failed to get canvas');
+    const img = editorImage;
+    if (!img || !(img.naturalWidth || img.width) || !(img.naturalHeight || img.height)) {
+        console.error('Invalid image element for preview');
         return;
     }
+    
+    // 基于当前图片生成源canvas
+    const sourceCanvas = document.createElement('canvas');
+    sourceCanvas.width = originalWidth;
+    sourceCanvas.height = originalHeight;
+    const srcCtx = sourceCanvas.getContext('2d');
+    srcCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
     
     // 绘制调整前的图片
     const beforeCtx = beforeCanvas.getContext('2d');
@@ -700,9 +780,9 @@ window.openEditorForImage = function(index) {
             background: false,
             autoCrop: false,
             ready: function() {
-                const imageData = cropper.getImageData();
-                originalWidth = Math.round(imageData.naturalWidth);
-                originalHeight = Math.round(imageData.naturalHeight);
+                const img = editorImage;
+                originalWidth = img.naturalWidth || img.width;
+                originalHeight = img.naturalHeight || img.height;
                 originalAspectRatio = originalWidth / originalHeight;
                 
                 resizeWidth.value = originalWidth;
@@ -743,17 +823,41 @@ async function applyInlineEdit() {
             canvas = cropper.getCroppedCanvas();
         } else if (enableResize.checked) {
             // 应用分辨率调整
-            const targetWidth = parseInt(resizeWidth.value);
-            const targetHeight = parseInt(resizeHeight.value);
+            let targetWidth = parseInt(resizeWidth.value, 10);
+            let targetHeight = parseInt(resizeHeight.value, 10);
+
+            if (!targetWidth || !Number.isFinite(targetWidth)) {
+                targetWidth = originalWidth;
+            }
+            if (!targetHeight || !Number.isFinite(targetHeight)) {
+                targetHeight = originalHeight;
+            }
+
+            if (!targetWidth || !targetHeight || targetWidth <= 0 || targetHeight <= 0) {
+                console.error('Invalid target size for resize:', targetWidth, targetHeight);
+                alert('分辨率设置无效，请输入正确的宽度和高度');
+                return;
+            }
             
             console.log('Applying resize:', targetWidth, 'x', targetHeight);
             
-            // 先获取当前完整图片
-            const fullCanvas = cropper.getCroppedCanvas();
-            
-            if (!fullCanvas) {
+            // 基于当前图片生成完整canvas
+            const img = editorImage;
+            let baseWidth = originalWidth;
+            let baseHeight = originalHeight;
+            if (!baseWidth || !baseHeight || isNaN(baseWidth) || isNaN(baseHeight)) {
+                baseWidth = img.naturalWidth || img.width;
+                baseHeight = img.naturalHeight || img.height;
+            }
+            if (!img || !baseWidth || !baseHeight) {
                 throw new Error('无法获取当前图片canvas');
             }
+
+            const fullCanvas = document.createElement('canvas');
+            fullCanvas.width = baseWidth;
+            fullCanvas.height = baseHeight;
+            const fullCtx = fullCanvas.getContext('2d');
+            fullCtx.drawImage(img, 0, 0, baseWidth, baseHeight);
             
             // 创建调整大小的canvas
             const resizeCanvas = document.createElement('canvas');
@@ -766,12 +870,21 @@ async function applyInlineEdit() {
         
         if (!canvas) {
             console.error('No canvas generated');
+            alert('生成图片失败，请重试');
             return;
         }
         
         // 将canvas转为blob，明确指定类型
         console.log('Converting canvas to blob...');
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob((result) => {
+                if (!result) {
+                    reject(new Error('Canvas toBlob returned null'));
+                } else {
+                    resolve(result);
+                }
+            }, 'image/png');
+        });
         console.log('Blob created:', blob.size, 'bytes');
         
         // 如果有有效的索引，更新uploadedFiles数组
@@ -841,16 +954,40 @@ async function applyEditorChanges() {
     
     try {
         // 直接获取当前完整的canvas（包含所有已应用的编辑）
-        const canvas = cropper.getCroppedCanvas();
+        let canvas = cropper.getCroppedCanvas();
         
-        if (!canvas) {
-            throw new Error('无法获取图片canvas');
+        // 如果第一次获取到的canvas无效，尝试根据当前图片数据重新获取
+        if (!canvas || !canvas.width || !canvas.height) {
+            const imageData = cropper.getImageData();
+            const fallbackWidth = Math.round(imageData.naturalWidth || imageData.width || 0);
+            const fallbackHeight = Math.round(imageData.naturalHeight || imageData.height || 0);
+            if (fallbackWidth > 0 && fallbackHeight > 0) {
+                canvas = cropper.getCroppedCanvas({
+                    width: fallbackWidth,
+                    height: fallbackHeight
+                });
+            }
         }
         
-        // 将canvas转为blob
-        const blob = await new Promise(resolve => canvas.toBlob(resolve));
+        if (!canvas || !canvas.width || !canvas.height) {
+            throw new Error('无法获取有效的图片canvas');
+        }
+        
         const file = uploadedFiles[currentEditIndex];
-        const newFile = new File([blob], file.name, { type: file.type });
+        const mimeType = (file && file.type) ? file.type : 'image/png';
+        
+        // 将canvas转为blob
+        const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob((result) => {
+                if (!result) {
+                    reject(new Error('Canvas toBlob returned null'));
+                } else {
+                    resolve(result);
+                }
+            }, mimeType);
+        });
+        const fileName = file && file.name ? file.name : 'edited-image.png';
+        const newFile = new File([blob], fileName, { type: mimeType });
         
         // 替换原文件
         uploadedFiles[currentEditIndex] = newFile;
