@@ -367,7 +367,7 @@ function displayResults() {
                     </div>
                 </div>
                 <div class="result-actions">
-                    <button class="btn btn-primary" onclick="downloadSingle(${index})">
+                    <button class="btn btn-primary btn-small" onclick="downloadSingle(${index})">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -398,7 +398,7 @@ async function downloadAll() {
     
     // 显示加载状态
     downloadAllBtn.disabled = true;
-    downloadAllBtn.innerHTML = '<div class="spinner"></div> 打包中...';
+    downloadAllBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0; border-width: 2px;"></div> 打包中...';
     
     try {
         const zip = new JSZip();

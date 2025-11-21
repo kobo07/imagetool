@@ -85,6 +85,12 @@ retryLoadBtn.addEventListener('click', retryLoadFFmpeg);
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+    // Update meta theme-color
+    const themeColor = savedTheme === 'light' ? '#f8fafc' : '#0b0f17';
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', themeColor);
+    }
 }
 
 function toggleTheme() {
@@ -92,6 +98,10 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    
+    // Update meta theme-color
+    const themeColor = newTheme === 'light' ? '#f8fafc' : '#0b0f17';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor);
 }
 
 // File handling
