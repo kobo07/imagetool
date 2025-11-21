@@ -1135,8 +1135,148 @@ body {
     gap: 8px;
 }
 
-.btn-small {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    min-width: auto !important;
+
+/* Client Download Section - Professional Style */
+.client-download-section {
+    margin-bottom: 32px;
 }
+
+.client-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    transition: border-color 0.2s ease;
+}
+
+.client-card:hover {
+    border-color: var(--border-light);
+}
+
+.client-info {
+    flex: 1;
+}
+
+.client-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.client-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.version-tag {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-tertiary);
+    font-family: monospace;
+}
+
+.client-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    max-width: 600px;
+}
+
+.tech-specs {
+    display: flex;
+    gap: 24px;
+    font-size: 0.85rem;
+}
+
+.spec-item {
+    display: flex;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.spec-label {
+    color: var(--text-tertiary);
+}
+
+.spec-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.client-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.btn-download-client {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--text-primary);
+    color: var(--background);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.btn-download-client:hover {
+    opacity: 0.9;
+}
+
+.download-meta {
+    opacity: 0.7;
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.system-req {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+
+@media (max-width: 768px) {
+    .client-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+        gap: 24px;
+    }
+    
+    .client-action {
+        width: 100%;
+        align-items: stretch;
+    }
+    
+    .btn-download-client {
+        justify-content: center;
+    }
+    
+    .system-req {
+        text-align: center;
+    }
+    
+    .tech-specs {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
